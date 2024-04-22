@@ -14,17 +14,17 @@ datasource db {
 }
 
 
-enum Role {
-    User
+enum UserRole {
+    USER
     ADMIM
 }
 
 model User {
     id      Int      @id @default(autoincrement())
-    account String @db.VarChar(255)
+    account String @db.VarChar(255) @unique
     password String @db.VarChar(255)
     nickname    String  @db.VarChar(255)
-    role Role @default(User)
+    role UserRole @default(USER)
 
     createdAt  DateTime   @default(now())
     updatedAt  DateTime   @updatedAt

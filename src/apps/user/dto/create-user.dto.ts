@@ -1,5 +1,5 @@
+import { UserRole } from '@prisma/client'
 import { Length, IsEnum } from 'class-validator'
-import { UserRole } from 'src/constant/user'
 
 export class CreateUserDto {
     @Length(6, 16, {
