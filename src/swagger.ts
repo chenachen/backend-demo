@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 
-export function registerOpenApi(app: INestApplication) {
+export function registerSwagger(app: INestApplication) {
     const config = new DocumentBuilder()
         .setTitle('backend demo api doc')
         .setDescription('backend demo api doc')
