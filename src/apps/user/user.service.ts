@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { PrismaService } from 'src/shared/prisma.service'
+import { BusinessException } from 'src/common/exceptions/business.exception'
+import { ErrorEnum } from 'src/constant/response-code.constant'
+
 @Injectable()
 export class UserService {
     constructor(private prismaService: PrismaService) {}
@@ -33,7 +36,7 @@ export class UserService {
     }
 
     async findAll() {
-        return `This action returns all user`
+        throw new BusinessException(ErrorEnum.INVALID_USERNAME_PASSWORD)
     }
 
     findOne(id: number) {

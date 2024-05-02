@@ -7,6 +7,8 @@ import { ValidationPipe } from '@nestjs/common'
 import { LoggerService } from './shared/logger/logger.service'
 import { APP_CONFIG_TOKEN } from './config/app'
 import { TransformInterceptor } from './lifecycle/Interceptors/transform.interceptor'
+import { LoggingInterceptor } from './lifecycle/Interceptors/logging.interceptor'
+import { GlobalExceptionsFilter } from './lifecycle/filters/global.exception'
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
@@ -26,10 +28,11 @@ async function bootstrap() {
     // middleware
     app.use(helmet())
     app.useLogger(logerService)
-    //
-    app.useGlobalInterceptors(
-        new TransformInterceptor(configService, logerService),
-    )
+    // interceptors
+    app.useGlobalInterceptors(new TransformInterceptor())
+    isDev && app.useGlobalInterceptors(new LoggingInterceptor())
+    // filter
+    app.useGlobalFilters(new GlobalExceptionsFilter(isDev))
     // pipe
     app.useGlobalPipes(
         new ValidationPipe({

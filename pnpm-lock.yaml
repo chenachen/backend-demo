@@ -32,6 +32,9 @@ dependencies:
   helmet:
     specifier: ^7.1.0
     version: 7.1.0
+  lodash:
+    specifier: ^4.17.21
+    version: 4.17.21
   reflect-metadata:
     specifier: ^0.2.0
     version: 0.2.2
@@ -61,6 +64,9 @@ devDependencies:
   '@types/jest':
     specifier: ^29.5.2
     version: 29.5.12
+  '@types/lodash':
+    specifier: ^4.17.0
+    version: 4.17.0
   '@types/node':
     specifier: ^20.3.1
     version: 20.12.7
@@ -1349,6 +1355,10 @@ packages:
 
   /@types/json-schema@7.0.15:
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
+    dev: true
+
+  /@types/lodash@4.17.0:
+    resolution: {integrity: sha512-t7dhREVv6dbNj0q17X12j7yDG4bD/DHYX7o5/DbDxobP0HnGPgpRz2Ej77aL7TZT3DSw13fqUTj8J4mMnqa7WA==}
     dev: true
 
   /@types/methods@1.1.4:
