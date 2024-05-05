@@ -1,6 +1,6 @@
 import { ConsoleLogger, ConsoleLoggerOptions, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { APP_CONFIG_TOKEN } from 'src/config/app'
+import { APP_CONFIG_TOKEN } from 'src/config/app.config'
 import { LogLevel } from 'src/constant/logger.constant'
 
 import type { Logger as WinstonLogger } from 'winston'

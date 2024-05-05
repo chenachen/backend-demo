@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common'
 import { UserModule } from './apps/user/user.module'
 import { ConfigModule } from '@nestjs/config'
 import { SharedModule } from './shared/shared.module'
-import baseConfig from './config/app'
+import { AuthModule } from './apps/auth/auth.module'
+import configs from './config'
 
 @Module({
     imports: [
@@ -11,10 +12,11 @@ import baseConfig from './config/app'
             envFilePath: ['.env'],
             // 是否在控制台中显示加载的环境变量，默认为 false
             isGlobal: true,
-            load: [baseConfig],
+            load: [...Object.values(configs)],
         }),
         UserModule,
         SharedModule,
+        AuthModule,
     ],
     controllers: [],
     providers: [],

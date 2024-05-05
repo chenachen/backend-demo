@@ -5,10 +5,11 @@ import { registerSwagger } from './swagger'
 import { ConfigService } from '@nestjs/config'
 import { ValidationPipe } from '@nestjs/common'
 import { LoggerService } from './shared/logger/logger.service'
-import { APP_CONFIG_TOKEN } from './config/app'
+import { APP_CONFIG_TOKEN } from './config/app.config'
 import { TransformInterceptor } from './lifecycle/Interceptors/transform.interceptor'
 import { LoggingInterceptor } from './lifecycle/Interceptors/logging.interceptor'
 import { GlobalExceptionsFilter } from './lifecycle/filters/global.exception'
+import { AllConfigType } from './config'
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
@@ -18,9 +19,12 @@ async function bootstrap() {
     // 获取环境变量
     const configService = app.get(ConfigService)
     const logerService = app.get(LoggerService)
-    const { port, isDev, globalPrefix } = configService.get(APP_CONFIG_TOKEN, {
-        infer: true,
-    })
+    const { port, isDev, globalPrefix } = configService.get<AllConfigType>(
+        APP_CONFIG_TOKEN,
+        {
+            infer: true,
+        },
+    )
 
     app.enableCors({ origin: '*', credentials: true })
     app.setGlobalPrefix(globalPrefix)

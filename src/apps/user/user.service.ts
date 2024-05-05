@@ -15,7 +15,6 @@ export class UserService {
                 account: createUserDto.account,
             },
         })
-        console.log(user)
 
         if (user) {
             return {
