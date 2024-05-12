@@ -19,14 +19,16 @@ export class AuthController {
         @Ip() ip: string,
         @Headers('user-agent') ua: string,
     ) {
-        console.log(ip, ua, '=====')
         return await this.authService.login(dto, ip, ua)
     }
 
     @Get('img')
     @ApiOperation({ summary: '获取登录图片验证码' })
     @Public()
-    async captchaByImg(@Query() dto: ImageCaptchaDto): Promise<ImageCaptcha> {
-        return await this.authService.genCaptcha(dto)
+    async captchaByImg(
+        @Query() dto: ImageCaptchaDto,
+        @Ip() ip: string,
+    ): Promise<ImageCaptcha> {
+        return await this.authService.genCaptcha(dto, ip)
     }
 }

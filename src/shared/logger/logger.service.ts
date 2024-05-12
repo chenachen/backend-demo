@@ -15,11 +15,11 @@ export class LoggerService extends ConsoleLogger {
     constructor(
         context: string,
         options: ConsoleLoggerOptions,
-        private readonly configServer: ConfigService,
+        private readonly configService: ConfigService,
     ) {
         super(context, options)
 
-        this.isDev = this.configServer.get(APP_CONFIG_TOKEN)
+        this.isDev = this.configService.get(APP_CONFIG_TOKEN).isDev
 
         if (!this.isDev) {
             this.initWinstonLogger()
@@ -114,6 +114,12 @@ export class LoggerService extends ConsoleLogger {
                 context: hasStack ? context : stack,
                 message: hasStack ? new Error(message) : message,
             })
+        }
+    }
+
+    devLog(message: string, context) {
+        if (this.isDev) {
+            this.log(message, context)
         }
     }
 }

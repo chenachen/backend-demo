@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
 
-import { RedisClientType } from 'redis'
 import * as svgCaptcha from 'svg-captcha'
 import { isEmpty } from 'lodash'
 
@@ -13,14 +12,20 @@ import { LoginDto } from './dto/login.dto'
 import { ImageCaptchaDto } from './dto/captcha.dto'
 
 import { ImageCaptcha } from './auth.interface'
+import { comparePassword } from 'src/common/utils/password-encryption'
+import { PrismaService } from 'src/shared/prisma.service'
+import { RedisClientType } from 'redis'
+import { LoggerService } from 'src/shared/logger/logger.service'
 
 @Injectable()
 export class AuthService {
     constructor(
         @Inject(RedisProviderKey) private redisService: RedisClientType,
+        private readonly prismaService: PrismaService,
+        private readonly loggerService: LoggerService,
     ) {}
 
-    async genCaptcha(dto: ImageCaptchaDto): Promise<ImageCaptcha> {
+    async genCaptcha(dto: ImageCaptchaDto, ip: string): Promise<ImageCaptcha> {
         const { width, height } = dto
 
         const svg = svgCaptcha.create({
@@ -37,10 +42,18 @@ export class AuthService {
             )}`,
             id: generateUUID(),
         }
-        // 3分钟过期时间
-        await this.redisService.set(genCaptchaImgKey(result.id), svg.text, {
-            EX: 60 * 3,
+        const redisKey = genCaptchaImgKey(result.id)
+        await this.redisService.hSet(redisKey, {
+            code: svg.text,
+            ip,
         })
+        // 1分钟过期时间
+        this.redisService.expire(redisKey, 60)
+
+        this.loggerService.devLog(
+            `生成的验证码是： ${svg.text}`,
+            AuthService.name,
+        )
 
         return result
     }
@@ -48,10 +61,25 @@ export class AuthService {
     /**
      * 校验图片验证码
      */
-    private async checkImgCaptcha(id: string, code: string): Promise<void> {
-        const cacheKey = genCaptchaImgKey(id)
-        const result = await this.redisService.get(cacheKey)
-        if (isEmpty(result) || code.toLowerCase() !== result.toLowerCase()) {
+    private async checkImgCaptcha(
+        captchaId: string,
+        verifyCode: string,
+        requestIp: string,
+    ): Promise<void> {
+        const cacheKey = genCaptchaImgKey(captchaId)
+        const { ip, code } = (await this.redisService.hGetAll(cacheKey)) ?? {
+            ip: null,
+            code: null,
+        }
+
+        if (
+            verifyCode.toLowerCase() !== code?.toLowerCase() ||
+            requestIp !== ip
+        ) {
+            this.loggerService.warn(
+                `用户输入： ip: ${requestIp}，code：${verifyCode}, 实际：ip: ${ip}, code: ${code}`,
+                AuthService.name,
+            )
             throw new BusinessException(ErrorEnum.INVALID_VERIFICATION_CODE)
         }
 
@@ -61,8 +89,20 @@ export class AuthService {
 
     async login(dto: LoginDto, ip: string, ua: string) {
         const { account, password, captchaId, verifyCode } = dto
-        console.log(account, password, ip, ua)
-        await this.checkImgCaptcha(captchaId, verifyCode)
-        throw new Error('Method not implemented.')
+
+        await this.checkImgCaptcha(captchaId, verifyCode, ip)
+
+        const user = await this.prismaService.user.findUnique({
+            where: {
+                account,
+            },
+        })
+
+        if (!user || !(await comparePassword(password, user.password))) {
+            throw new BusinessException(ErrorEnum.INVALID_USERNAME_PASSWORD)
+        }
+
+        // todo: 生成jwt
+        console.log(ua)
     }
 }

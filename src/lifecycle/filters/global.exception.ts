@@ -7,6 +7,7 @@ import {
     Logger,
 } from '@nestjs/common'
 import { BusinessException } from 'src/common/exceptions/business.exception'
+import { ResponseModel } from 'src/common/models/response.model'
 import { ErrorEnum } from 'src/constant/response-code.constant'
 
 interface myError {
@@ -61,13 +62,8 @@ export class GlobalExceptionsFilter implements ExceptionFilter {
                 ? exception.getErrorCode()
                 : status
 
-        // 返回基础响应结果
-        const resBody = {
-            code: apiErrorCode,
-            message,
-            data: null,
-        }
+        // 返回基础响应结
 
-        response.status(status).send(resBody)
+        response.status(status).send(ResponseModel.error(apiErrorCode, message))
     }
 }

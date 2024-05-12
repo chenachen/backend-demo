@@ -6,8 +6,7 @@ import {
 } from '@nestjs/common'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
-import { isObject } from 'lodash'
-import { SUCCESS_CODE } from 'src/constant/response-code.constant'
+import { ResponseModel } from 'src/common/models/response.model'
 
 @Injectable()
 export class TransformInterceptor implements NestInterceptor {
@@ -17,20 +16,7 @@ export class TransformInterceptor implements NestInterceptor {
     ): Observable<any> {
         return next.handle().pipe(
             map((data) => {
-                if (data?.data && data?.message) {
-                    return {
-                        ...data,
-                        code: SUCCESS_CODE,
-                    }
-                } else if (isObject(data)) {
-                    return {
-                        data,
-                        message: '',
-                        code: SUCCESS_CODE,
-                    }
-                }
-
-                return data
+                return ResponseModel.success(data)
             }),
         )
     }
