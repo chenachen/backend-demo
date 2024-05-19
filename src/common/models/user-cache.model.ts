@@ -1,6 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { User, UserRole } from '@prisma/client'
 
+interface UserCacheData {
+    user: User
+    ip: string
+    ua: string
+    refreshToken: string
+    accessToken: string
+}
+
 export class UserCacheModel {
     @ApiProperty({ type: 'string', description: '用户帐号' })
     account: string
@@ -14,15 +22,21 @@ export class UserCacheModel {
     @ApiProperty({ type: 'string', description: '浏览器的user-agent' })
     ua: string
 
-    @ApiProperty({ type: 'string', description: '颁发给用户的token' })
-    token: string
+    @ApiProperty({ type: 'string', description: '颁发给用户的refreshToken' })
+    refreshToken: string
 
-    constructor(user: User, ip: string, ua: string, token: string) {
+    @ApiProperty({ type: 'string', description: '颁发给用户的accessToken' })
+    accessToken: string
+
+    constructor(userCacheData: UserCacheData) {
+        const { user, ip, ua, refreshToken, accessToken } = userCacheData
         const { account, role } = user
+
         this.account = account
         this.userRole = role
         this.ip = ip
         this.ua = ua
-        this.token = token
+        this.refreshToken = refreshToken
+        this.accessToken = accessToken
     }
 }

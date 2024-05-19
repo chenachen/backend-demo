@@ -18,7 +18,7 @@ async function bootstrap() {
 
     // 获取环境变量
     const configService = app.get(ConfigService)
-    const logerService = app.get(LoggerService)
+    const loggerService = app.get(LoggerService)
     const { port, isDev, globalPrefix } = configService.get<AllConfigType>(
         APP_CONFIG_TOKEN,
         {
@@ -31,7 +31,7 @@ async function bootstrap() {
 
     // middleware
     app.use(helmet())
-    app.useLogger(logerService)
+    app.useLogger(loggerService)
     // interceptors
     app.useGlobalInterceptors(new TransformInterceptor())
     isDev && app.useGlobalInterceptors(new LoggingInterceptor())
@@ -47,6 +47,6 @@ async function bootstrap() {
     // api doc
     isDev && registerSwagger(app)
 
-    await app.listen(port)
+    await app.listen(port, '0.0.0.0')
 }
 bootstrap()

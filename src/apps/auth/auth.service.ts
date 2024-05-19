@@ -4,7 +4,7 @@ import * as svgCaptcha from 'svg-captcha'
 import { isEmpty } from 'lodash'
 
 import { RedisProviderKey } from 'src/shared/redis.provider'
-import { genCaptchaImgKey } from 'src/common/utils/getRedisKey'
+import { genCaptchaImgKey, getUserCacheKey } from 'src/common/utils/getRedisKey'
 import { BusinessException } from 'src/common/exceptions/business.exception'
 import { generateUUID } from 'src/common/utils/tools'
 import { ErrorEnum } from 'src/constant/response-code.constant'
@@ -16,6 +16,9 @@ import { comparePassword } from 'src/common/utils/password-encryption'
 import { PrismaService } from 'src/shared/prisma.service'
 import { RedisClientType } from 'redis'
 import { LoggerService } from 'src/shared/logger/logger.service'
+import { TokenService } from 'src/shared/token.service'
+import { User } from '@prisma/client'
+import { UserCacheModel } from 'src/common/models/user-cache.model'
 
 @Injectable()
 export class AuthService {
@@ -23,6 +26,7 @@ export class AuthService {
         @Inject(RedisProviderKey) private redisService: RedisClientType,
         private readonly prismaService: PrismaService,
         private readonly loggerService: LoggerService,
+        private readonly tokenService: TokenService,
     ) {}
 
     async genCaptcha(dto: ImageCaptchaDto, ip: string): Promise<ImageCaptcha> {
@@ -102,7 +106,38 @@ export class AuthService {
             throw new BusinessException(ErrorEnum.INVALID_USERNAME_PASSWORD)
         }
 
-        // todo: 生成jwt
-        console.log(ua)
+        const payload = {
+            account: user.account,
+            role: user.role,
+            id: user.id,
+            nickname: user.nickname,
+        }
+        const token = await this.tokenService.generateToken(payload)
+
+        this.setUserCache({
+            user,
+            ip,
+            ua,
+            ...token,
+        })
+
+        return token
+    }
+
+    private setUserCache(param: {
+        ip: string
+        ua: string
+        accessToken: string
+        user: User
+        refreshToken: string
+    }) {
+        const userCacheData = new UserCacheModel(param)
+        const {
+            user: { account },
+        } = param
+
+        const cacheKey = getUserCacheKey(account)
+
+        this.redisService.hSet(cacheKey, { ...userCacheData })
     }
 }

@@ -1,8 +1,13 @@
 import bcrypt from 'bcrypt'
 
-export async function passwordEncryption(password: string) {
+/**
+ * @description 密码加密
+ * @param {string} password 原始密码
+ * @returns {Promise<string>}
+ */
+export function passwordEncryption(password: string) {
     // 10位的盐
-    return await bcrypt.hash(password, 10)
+    return bcrypt.hash(password, 10)
 }
 
 /**
@@ -11,9 +16,9 @@ export async function passwordEncryption(password: string) {
  * @param {string} hash 加密后的密码
  * @returns {Promise<boolean>}
  */
-export async function comparePassword(
+export function comparePassword(
     password: string,
     hash: string,
 ): Promise<boolean> {
-    return await bcrypt.compare(password, hash)
+    return bcrypt.compare(password, hash)
 }
