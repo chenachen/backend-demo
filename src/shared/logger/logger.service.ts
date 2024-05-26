@@ -34,11 +34,7 @@ export class LoggerService extends ConsoleLogger {
         }
         this.winstonLogger = createLogger({
             levels: config.npm.levels,
-            format: format.combine(
-                format.errors({ stack: true }),
-                format.timestamp(),
-                format.json(),
-            ),
+            format: format.combine(format.errors({ stack: true }), format.timestamp(), format.json()),
             transports: [
                 new transports.DailyRotateFile({
                     ...baseConfig,

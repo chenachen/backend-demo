@@ -4,6 +4,9 @@ import { ConfigModule } from '@nestjs/config'
 import { SharedModule } from './shared/shared.module'
 import { AuthModule } from './apps/auth/auth.module'
 import configs from './config'
+import { APP_GUARD } from '@nestjs/core'
+import { JwtAuthGuard } from './lifecycle/guard/jwt-auth.guard'
+import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 
 @Module({
     imports: [
@@ -14,11 +17,23 @@ import configs from './config'
             isGlobal: true,
             load: [...Object.values(configs)],
         }),
+        ThrottlerModule.forRootAsync({
+            useFactory: () => ({
+                errorMessage: '当前操作过于频繁，请稍后再试！',
+                throttlers: [{ ttl: seconds(10), limit: 7 }],
+            }),
+        }),
         UserModule,
         SharedModule,
         AuthModule,
     ],
     controllers: [],
-    providers: [],
+    providers: [
+        {
+            provide: APP_GUARD,
+            useClass: JwtAuthGuard,
+        },
+        { provide: APP_GUARD, useClass: ThrottlerGuard },
+    ],
 })
 export class AppModule {}

@@ -6,6 +6,7 @@ export function registerSwagger(app: INestApplication) {
         .setTitle('backend demo api doc')
         .setDescription('backend demo api doc')
         .setVersion('1.0')
+        .addBearerAuth()
         .build()
 
     const document = SwaggerModule.createDocument(app, config)

@@ -9,9 +9,6 @@ import { JwtModule } from '@nestjs/jwt'
 @Module({
     exports: [PrismaService, RedisProvider, TokenService],
     providers: [PrismaService, RedisProvider, TokenService],
-    imports: [
-        LoggerModule.forRoot(),
-        JwtModule.register({ global: true, secret: '' }),
-    ],
+    imports: [LoggerModule.forRoot(), JwtModule.register({ global: true, secret: '' })],
 })
 export class SharedModule {}

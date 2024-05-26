@@ -9,10 +9,7 @@ export const RedisProviderKey = 'REDIS_CLIENT'
 
 export const RedisProvider: Provider = {
     provide: RedisProviderKey,
-    useFactory: async (
-        configService: ConfigService<AllConfigType>,
-        loggerService: LoggerService,
-    ) => {
+    useFactory: async (configService: ConfigService<AllConfigType>, loggerService: LoggerService) => {
         const { url } = configService.get<IRedisConfig>(REDIS_CONFIG_TOKEN)
         const client = createClient({
             url,

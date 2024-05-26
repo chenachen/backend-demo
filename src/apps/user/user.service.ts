@@ -2,8 +2,14 @@ import { Injectable } from '@nestjs/common'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { PrismaService } from 'src/shared/prisma.service'
-import { BusinessException } from 'src/common/exceptions/business.exception'
-import { ErrorEnum } from 'src/constant/response-code.constant'
+import { comparePassword, passwordEncryption } from '../../common/utils/password-encryption'
+import { UserListDto } from '../auth/dto/user-list.dto'
+import { excludeField } from '../../common/utils/prisma-helper'
+import { User } from '@prisma/client'
+import { BusinessException } from '../../common/exceptions/business.exception'
+import { ErrorEnum } from '../../constant/response-code.constant'
+import { UpdatePasswordDto } from './dto/update-password.dto'
+import { TokenPayload } from '../../shared/token.service'
 
 @Injectable()
 export class UserService {
@@ -26,28 +32,104 @@ export class UserService {
             data: {
                 account: createUserDto.account,
                 nickname: createUserDto.nickname,
-                password: createUserDto.password,
+                password: await passwordEncryption(createUserDto.password),
                 role: createUserDto.role,
             },
         })
 
-        return 'This action adds a new user'
+        return {}
     }
 
-    async findAll() {
-        throw new BusinessException(ErrorEnum.INVALID_USERNAME_PASSWORD)
+    async findAll(userListDto: UserListDto): Promise<Omit<User, 'password'>[]> {
+        const { sortOrder, sortName, take, skip, searchText, searchType } = userListDto
+
+        const orderBy = {
+            [sortName]: sortOrder,
+        }
+
+        let where
+        if (searchType && searchText) {
+            where = {
+                [searchType]: {
+                    contains: searchText,
+                },
+            }
+        }
+
+        const users = await this.prismaService.user.findMany({
+            where,
+            take,
+            skip,
+            orderBy,
+        })
+
+        return excludeField(users, ['password'])
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} user`
+    async findOne(id: number): Promise<Omit<User, 'password'> | null> {
+        const user = await this.getUserById(id)
+
+        return excludeField(user, ['password'])
     }
 
-    update(id: number, updateUserDto: UpdateUserDto) {
-        console.log(updateUserDto)
-        return `This action updates a #${id} user`
+    private async getUserById(id: number) {
+        return await this.prismaService.user.findUnique({
+            where: {
+                id,
+            },
+        })
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} user`
+    private async getUserOrThrowNotExist(id: number) {
+        const user = await this.getUserById(id)
+
+        if (!user) {
+            throw new BusinessException(ErrorEnum.USER_NOT_FOUND)
+        }
+
+        return user
+    }
+
+    async update(updateUserDto: UpdateUserDto) {
+        const { id, ...data } = updateUserDto
+
+        await this.getUserOrThrowNotExist(id)
+
+        await this.prismaService.user.update({
+            where: {
+                id,
+            },
+            data,
+        })
+    }
+
+    async remove(id: number) {
+        await this.getUserOrThrowNotExist(id)
+
+        await this.prismaService.user.delete({
+            where: {
+                id,
+            },
+        })
+    }
+
+    async updatePassword(updatePasswordDto: UpdatePasswordDto, userInfo: TokenPayload) {
+        const { id } = userInfo
+        const user = await this.getUserOrThrowNotExist(id)
+
+        const { oldPassword, newPassword } = updatePasswordDto
+
+        const pass = await comparePassword(oldPassword, user.password)
+
+        if (!pass) {
+            throw new BusinessException(ErrorEnum.INVALID_PASSWORD)
+        }
+
+        await this.prismaService.user.update({
+            where: { id },
+            data: {
+                password: await passwordEncryption(newPassword),
+            },
+        })
     }
 }

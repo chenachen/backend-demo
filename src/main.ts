@@ -19,12 +19,9 @@ async function bootstrap() {
     // 获取环境变量
     const configService = app.get(ConfigService)
     const loggerService = app.get(LoggerService)
-    const { port, isDev, globalPrefix } = configService.get<AllConfigType>(
-        APP_CONFIG_TOKEN,
-        {
-            infer: true,
-        },
-    )
+    const { port, isDev, globalPrefix } = configService.get<AllConfigType>(APP_CONFIG_TOKEN, {
+        infer: true,
+    })
 
     app.enableCors({ origin: '*', credentials: true })
     app.setGlobalPrefix(globalPrefix)
@@ -36,10 +33,11 @@ async function bootstrap() {
     app.useGlobalInterceptors(new TransformInterceptor())
     isDev && app.useGlobalInterceptors(new LoggingInterceptor())
     // filter
-    app.useGlobalFilters(new GlobalExceptionsFilter(isDev))
+    app.useGlobalFilters(new GlobalExceptionsFilter(isDev, loggerService))
     // pipe
     app.useGlobalPipes(
         new ValidationPipe({
+            transform: true,
             disableErrorMessages: !isDev, // 生产环境不提示太具体的参数报错
         }),
     )
@@ -49,4 +47,5 @@ async function bootstrap() {
 
     await app.listen(port, '0.0.0.0')
 }
+
 bootstrap()

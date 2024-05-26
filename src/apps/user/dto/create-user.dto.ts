@@ -1,28 +1,23 @@
 import { UserRole } from '@prisma/client'
-import { Length, IsEnum } from 'class-validator'
+import { IsEnum, Length } from 'class-validator'
+import { defaultLengthOptions } from 'src/common/validator/length'
+import { ApiProperty } from '@nestjs/swagger'
+import { defaultEnumOptions } from '../../../common/validator/enum'
 
 export class CreateUserDto {
-    @Length(6, 16, {
-        message: (args) => {
-            const {
-                value,
-                property,
-                constraints: [min, max],
-            } = args
-            if (!value) {
-                return `${property}不能为空`
-            }
-            return `${property}长度在${min}和${max}之间`
-        },
-    })
+    @ApiProperty({ description: '帐号，需要唯一' })
+    @Length(6, 16, defaultLengthOptions)
     account: string
 
-    @Length(2, 16)
+    @ApiProperty({ description: '昵称' })
+    @Length(2, 16, defaultLengthOptions)
     nickname: string
 
-    @Length(8, 16)
+    @ApiProperty({ description: '密码' })
+    @Length(8, 16, defaultLengthOptions)
     password: string
 
-    @IsEnum(UserRole)
+    @ApiProperty({ description: '角色', enum: UserRole })
+    @IsEnum(UserRole, defaultEnumOptions)
     role: UserRole
 }

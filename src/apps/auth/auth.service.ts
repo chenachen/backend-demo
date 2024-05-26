@@ -16,7 +16,7 @@ import { comparePassword } from 'src/common/utils/password-encryption'
 import { PrismaService } from 'src/shared/prisma.service'
 import { RedisClientType } from 'redis'
 import { LoggerService } from 'src/shared/logger/logger.service'
-import { TokenService } from 'src/shared/token.service'
+import { TokenPayload, TokenService } from 'src/shared/token.service'
 import { User } from '@prisma/client'
 import { UserCacheModel } from 'src/common/models/user-cache.model'
 
@@ -41,9 +41,7 @@ export class AuthService {
             charPreset: '1234567890',
         })
         const result = {
-            img: `data:image/svg+xml;base64,${Buffer.from(svg.data).toString(
-                'base64',
-            )}`,
+            img: `data:image/svg+xml;base64,${Buffer.from(svg.data).toString('base64')}`,
             id: generateUUID(),
         }
         const redisKey = genCaptchaImgKey(result.id)
@@ -54,10 +52,7 @@ export class AuthService {
         // 1分钟过期时间
         this.redisService.expire(redisKey, 60)
 
-        this.loggerService.devLog(
-            `生成的验证码是： ${svg.text}`,
-            AuthService.name,
-        )
+        this.loggerService.devLog(`生成的验证码是： ${svg.text}, id 是 ${result.id}`, AuthService.name)
 
         return result
     }
@@ -65,21 +60,14 @@ export class AuthService {
     /**
      * 校验图片验证码
      */
-    private async checkImgCaptcha(
-        captchaId: string,
-        verifyCode: string,
-        requestIp: string,
-    ): Promise<void> {
+    private async checkImgCaptcha(captchaId: string, verifyCode: string, requestIp: string): Promise<void> {
         const cacheKey = genCaptchaImgKey(captchaId)
         const { ip, code } = (await this.redisService.hGetAll(cacheKey)) ?? {
             ip: null,
             code: null,
         }
 
-        if (
-            verifyCode.toLowerCase() !== code?.toLowerCase() ||
-            requestIp !== ip
-        ) {
+        if (verifyCode.toLowerCase() !== code?.toLowerCase() || requestIp !== ip) {
             this.loggerService.warn(
                 `用户输入： ip: ${requestIp}，code：${verifyCode}, 实际：ip: ${ip}, code: ${code}`,
                 AuthService.name,
@@ -124,13 +112,7 @@ export class AuthService {
         return token
     }
 
-    private setUserCache(param: {
-        ip: string
-        ua: string
-        accessToken: string
-        user: User
-        refreshToken: string
-    }) {
+    private setUserCache(param: { ip: string; ua: string; accessToken: string; user: User; refreshToken: string }) {
         const userCacheData = new UserCacheModel(param)
         const {
             user: { account },
@@ -139,5 +121,12 @@ export class AuthService {
         const cacheKey = getUserCacheKey(account)
 
         this.redisService.hSet(cacheKey, { ...userCacheData })
+    }
+
+    async logout(user: TokenPayload) {
+        const { account } = user
+        const redisKey = getUserCacheKey(account)
+
+        await this.redisService.del(redisKey)
     }
 }
