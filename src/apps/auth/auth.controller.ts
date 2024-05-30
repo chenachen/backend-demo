@@ -21,8 +21,7 @@ export class AuthController {
         return await this.authService.login(dto, ip, ua)
     }
 
-    @Public()
-    @Get('img')
+    @Get('captcha')
     @ApiOperation({ summary: '获取登录图片验证码' })
     @Public()
     async captchaByImg(@Query() dto: ImageCaptchaDto, @Ip() ip: string): Promise<ImageCaptcha> {
