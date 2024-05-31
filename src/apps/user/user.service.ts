@@ -33,7 +33,7 @@ export class UserService {
                 account: createUserDto.account,
                 nickname: createUserDto.nickname,
                 password: await passwordEncryption(createUserDto.password),
-                role: createUserDto.role,
+                level: createUserDto.level,
             },
         })
 

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common'
-import { UserRole } from '@prisma/client'
+import { UserLevel } from '@prisma/client'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import { ITokenConfig, TOKEN_CONFIG_TOKEN } from '../config/token.config'
 
 export interface TokenPayload {
     account: string
-    role: UserRole
+    level: UserLevel
     id: number
     nickname: string
 }

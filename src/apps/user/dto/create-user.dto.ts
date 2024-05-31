@@ -1,4 +1,4 @@
-import { UserRole } from '@prisma/client'
+import { UserLevel } from '@prisma/client'
 import { IsEnum, Length } from 'class-validator'
 import { defaultLengthOptions } from 'src/common/validator/length'
 import { ApiProperty } from '@nestjs/swagger'
@@ -17,7 +17,7 @@ export class CreateUserDto {
     @Length(8, 16, defaultLengthOptions)
     password: string
 
-    @ApiProperty({ description: '角色', enum: UserRole })
-    @IsEnum(UserRole, defaultEnumOptions)
-    role: UserRole
+    @ApiProperty({ description: '角色', enum: UserLevel })
+    @IsEnum(UserLevel, defaultEnumOptions)
+    level: UserLevel
 }

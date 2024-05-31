@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { User, UserRole } from '@prisma/client'
+import { User, UserLevel } from '@prisma/client'
 
 interface UserCacheData {
     user: User
@@ -13,8 +13,8 @@ export class UserCacheModel {
     @ApiProperty({ type: 'string', description: '用户帐号' })
     account: string
 
-    @ApiProperty({ type: UserRole, description: '用户角色' })
-    userRole: UserRole
+    @ApiProperty({ type: UserLevel, description: '用户角色' })
+    userLevel: UserLevel
 
     @ApiProperty({ type: 'string', description: '登录时用户IP' })
     ip: string
@@ -30,10 +30,10 @@ export class UserCacheModel {
 
     constructor(userCacheData: UserCacheData) {
         const { user, ip, ua, refreshToken, accessToken } = userCacheData
-        const { account, role } = user
+        const { account, level } = user
 
         this.account = account
-        this.userRole = role
+        this.userLevel = level
         this.ip = ip
         this.ua = ua
         this.refreshToken = refreshToken
