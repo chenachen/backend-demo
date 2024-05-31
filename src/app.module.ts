@@ -7,6 +7,7 @@ import configs from './config'
 import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './lifecycle/guard/jwt-auth.guard'
 import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
+import { RolesModule } from './apps/roles/roles.module';
 
 @Module({
     imports: [
@@ -26,6 +27,7 @@ import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
         UserModule,
         SharedModule,
         AuthModule,
+        RolesModule,
     ],
     controllers: [],
     providers: [
