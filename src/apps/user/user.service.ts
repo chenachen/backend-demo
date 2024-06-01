@@ -3,13 +3,14 @@ import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { PrismaService } from 'src/shared/prisma.service'
 import { comparePassword, passwordEncryption } from '../../common/utils/password-encryption'
-import { UserListDto } from '../auth/dto/user-list.dto'
+import { UserListDto } from './dto/user-list.dto'
 import { excludeField } from '../../common/utils/prisma-helper'
 import { User } from '@prisma/client'
 import { BusinessException } from '../../common/exceptions/business.exception'
 import { ErrorEnum } from '../../constant/response-code.constant'
 import { UpdatePasswordDto } from './dto/update-password.dto'
 import { TokenPayload } from '../../shared/token.service'
+import { ResponseModel } from '../../common/models/response.model'
 
 @Injectable()
 export class UserService {
@@ -23,9 +24,7 @@ export class UserService {
         })
 
         if (user) {
-            return {
-                message: '用户已存在',
-            }
+            throw new BusinessException(ErrorEnum.SYSTEM_USER_EXISTS)
         }
 
         await this.prismaService.user.create({
@@ -37,7 +36,7 @@ export class UserService {
             },
         })
 
-        return {}
+        return ResponseModel.success({ message: '用户创建成功' })
     }
 
     async findAll(userListDto: UserListDto): Promise<Omit<User, 'password'>[]> {

@@ -113,7 +113,7 @@ export class LoggerService extends ConsoleLogger {
         }
     }
 
-    devLog(message: string, context) {
+    devLog(message: string, context?: string) {
         if (this.isDev) {
             this.log(message, context)
         }

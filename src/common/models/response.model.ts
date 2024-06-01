@@ -20,11 +20,11 @@ export class ResponseModel<T = any> {
         this.message = message
     }
 
-    static success<T>(data?: T, message?: string) {
+    static success<T>({ data, message }: { data?: T; message?: string }) {
         return new ResponseModel(SUCCESS_CODE, data, message)
     }
 
-    static error(code: number, message: string) {
-        return new ResponseModel(code, null, message)
+    static error({ code, message }: { code: number; message: string }) {
+        return new ResponseModel<null>(code, null, message)
     }
 }

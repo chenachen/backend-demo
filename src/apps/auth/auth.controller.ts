@@ -5,7 +5,7 @@ import { AuthService } from './auth.service'
 import { LoginDto } from './dto/login.dto'
 import { Public } from 'src/common/decorators/public.decorator'
 import { ImageCaptchaDto } from './dto/captcha.dto'
-import { ImageCaptcha } from './auth.interface'
+import { ImageCaptcha, LoginRes } from './auth.interface'
 import { AuthUser } from '../../common/decorators/auth-user.decorator'
 import { TokenPayload } from '../../shared/token.service'
 
@@ -17,7 +17,7 @@ export class AuthController {
     @Public()
     @Post('login')
     @ApiOperation({ summary: '登录接口' })
-    async login(@Body() dto: LoginDto, @Ip() ip: string, @Headers('user-agent') ua: string) {
+    async login(@Body() dto: LoginDto, @Ip() ip: string, @Headers('user-agent') ua: string): Promise<LoginRes> {
         return await this.authService.login(dto, ip, ua)
     }
 

@@ -7,3 +7,11 @@ export class ImageCaptcha {
     @ApiProperty({ description: '验证码对应的唯一ID' })
     id: string
 }
+
+export class LoginRes {
+    @ApiProperty({ description: '资源访问token' })
+    accessToken: string
+
+    @ApiProperty({ description: '令牌刷新token' })
+    refreshToken: string
+}

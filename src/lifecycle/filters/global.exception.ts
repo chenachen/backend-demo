@@ -48,7 +48,6 @@ export class GlobalExceptionsFilter implements ExceptionFilter {
         const apiErrorCode: number = exception instanceof BusinessException ? exception.getErrorCode() : status
 
         // 返回基础响应结
-
-        response.status(status).send(ResponseModel.error(apiErrorCode, message))
+        response.status(status).send(ResponseModel.error({ code: apiErrorCode, message }))
     }
 }

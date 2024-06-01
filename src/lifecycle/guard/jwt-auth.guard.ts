@@ -10,6 +10,7 @@ import { RedisClientType } from 'redis'
 import { TokenService } from '../../shared/token.service'
 import { getUserCacheKey } from '../../common/utils/getRedisKey'
 import { UserCacheModel } from '../../common/models/user-cache.model'
+import { LoggerService } from '../../shared/logger/logger.service'
 
 // https://docs.nestjs.com/recipes/passport#implement-protected-route-and-jwt-strategy-guards
 @Injectable()
@@ -20,6 +21,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         private reflector: Reflector,
         @Inject(RedisProviderKey) private redisService: RedisClientType,
         private readonly tokenService: TokenService,
+        private readonly loggerService: LoggerService,
     ) {
         super()
     }
@@ -35,12 +37,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         if (isPublic) {
             return true
         }
+        this.loggerService.devLog(`token is ${token}`, JwtAuthGuard.name)
         if (!token) {
             throw new UnauthorizedException('用户未登录')
         }
 
         try {
             const payload = await this.tokenService.verifyAccessToken(token)
+            this.loggerService.devLog(`payload is ${JSON.stringify(payload)}`, JwtAuthGuard.name)
 
             const currUa = request.header('user-agent')
             const currIp = request.ip
@@ -55,6 +59,15 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
             const { ua, ip, accessToken } = userCache
             if (ua !== currUa || ip !== currIp || accessToken !== token) {
+                this.loggerService.devLog(
+                    `
+                    ua: ${ua},
+                    currUa: ${currUa},
+                    ip: ${ip},
+                    currIp: ${currIp}
+                `,
+                    JwtAuthGuard.name,
+                )
                 throw new Error()
             }
 

@@ -2,13 +2,13 @@ import { ApiProperty } from '@nestjs/swagger'
 import { IsString, MaxLength, MinLength } from 'class-validator'
 
 export class LoginDto {
-    @ApiProperty({ description: '帐号' })
+    @ApiProperty({ description: '帐号', example: 'cacaca' })
     @IsString()
     @MinLength(4)
     @MaxLength(16)
     account: string
 
-    @ApiProperty({ description: '密码', example: 'a123456' })
+    @ApiProperty({ description: '密码', example: 'ccc,./123' })
     @IsString()
     @MinLength(6)
     @MaxLength(32)
