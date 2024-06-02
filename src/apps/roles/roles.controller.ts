@@ -3,9 +3,9 @@ import { RolesService } from './roles.service'
 import { CreateRoleDto } from './dto/create-role.dto'
 import { UpdateRoleDto } from './dto/update-role.dto'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
-import { Public } from '../../common/decorators/public.decorator'
 import { IdDto } from '../../common/dto/id.dto'
 import { RoleListDto } from './dto/role-list.dto'
+import { Public } from '../../common/decorators/public.decorator'
 
 @Public()
 @ApiTags('角色管理')
@@ -28,8 +28,14 @@ export class RolesController {
 
     @ApiOperation({ summary: '获取角色列表' })
     @Get('list')
-    findAll(@Query() roleListDto: RoleListDto) {
-        return this.rolesService.findAll(roleListDto)
+    getList(@Query() roleListDto: RoleListDto) {
+        return this.rolesService.getList(roleListDto)
+    }
+
+    @ApiOperation({ summary: '获取全部角色' })
+    @Get('all')
+    findAll() {
+        return this.rolesService.findAll()
     }
 
     @ApiOperation({ summary: '获取角色详情' })

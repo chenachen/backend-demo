@@ -1,8 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { User, UserLevel } from '@prisma/client'
+import { UserLevel } from '@prisma/client'
+import { UserPayload } from '../../types/prisma'
+import { Permission, PermissionCode } from '../../constant/permission.constant'
 
 interface UserCacheData {
-    user: User
+    user: UserPayload
     ip: string
     ua: string
     refreshToken: string
@@ -13,8 +15,11 @@ export class UserCacheModel {
     @ApiProperty({ type: 'string', description: '用户帐号' })
     account: string
 
-    @ApiProperty({ type: UserLevel, description: '用户角色' })
+    @ApiProperty({ type: UserLevel, description: '用户等级' })
     userLevel: UserLevel
+
+    @ApiProperty({ type: 'string', description: '用户角色, 使用时需要JSON.parse解析为数组' })
+    userRole: string
 
     @ApiProperty({ type: 'string', description: '登录时用户IP' })
     ip: string
@@ -38,5 +43,30 @@ export class UserCacheModel {
         this.ua = ua
         this.refreshToken = refreshToken
         this.accessToken = accessToken
+        this.userRole = this.getPermissionCode(user)
+    }
+
+    private getPermissionCode(user: UserPayload) {
+        if (!user.role) {
+            return JSON.stringify([])
+        }
+
+        const permissionList: PermissionCode[] = []
+
+        function traverse(list: unknown[]) {
+            list.forEach((item) => {
+                const { selected, code, children } = item as Permission
+
+                if (selected) {
+                    permissionList.push(code)
+                }
+                if (children) {
+                    traverse(children)
+                }
+            })
+        }
+        traverse(user.role.permissions)
+
+        return JSON.stringify(permissionList)
     }
 }

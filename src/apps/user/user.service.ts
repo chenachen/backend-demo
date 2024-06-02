@@ -11,35 +11,35 @@ import { ErrorEnum } from '../../constant/response-code.constant'
 import { UpdatePasswordDto } from './dto/update-password.dto'
 import { TokenPayload } from '../../shared/token.service'
 import { ResponseModel } from '../../common/models/response.model'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+import { PrismaErrorCode } from '../../constant/prisma-error-code.constant'
+import { LoggerService } from '../../shared/logger/logger.service'
 
 @Injectable()
 export class UserService {
-    constructor(private prismaService: PrismaService) {}
+    constructor(
+        private readonly prismaService: PrismaService,
+        private readonly loggerService: LoggerService,
+    ) {}
 
     async create(createUserDto: CreateUserDto) {
-        const user = await this.prismaService.user.findUnique({
-            where: {
-                account: createUserDto.account,
-            },
-        })
+        try {
+            const { password, ...otherData } = createUserDto
 
-        if (user) {
-            throw new BusinessException(ErrorEnum.SYSTEM_USER_EXISTS)
+            await this.prismaService.user.create({
+                data: {
+                    password: await passwordEncryption(password),
+                    ...otherData,
+                },
+            })
+        } catch (e) {
+            this.errHandler(e)
         }
-
-        await this.prismaService.user.create({
-            data: {
-                account: createUserDto.account,
-                nickname: createUserDto.nickname,
-                password: await passwordEncryption(createUserDto.password),
-                level: createUserDto.level,
-            },
-        })
 
         return ResponseModel.success({ message: '用户创建成功' })
     }
 
-    async findAll(userListDto: UserListDto): Promise<Omit<User, 'password'>[]> {
+    async getList(userListDto: UserListDto): Promise<Omit<User, 'password'>[]> {
         const { sortOrder, sortName, take, skip, searchText, searchType } = userListDto
 
         const orderBy = {
@@ -60,64 +60,89 @@ export class UserService {
             take,
             skip,
             orderBy,
+            include: {
+                role: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
         })
 
         return excludeField(users, ['password'])
     }
 
     async findOne(id: number): Promise<Omit<User, 'password'> | null> {
-        const user = await this.getUserById(id)
+        const user = await this.prismaService.user.findUnique({
+            where: {
+                id,
+            },
+        })
 
         return excludeField(user, ['password'])
     }
 
-    private async getUserById(id: number) {
-        return await this.prismaService.user.findUnique({
-            where: {
-                id,
-            },
-        })
-    }
-
-    private async getUserOrThrowNotExist(id: number) {
-        const user = await this.getUserById(id)
-
-        if (!user) {
-            throw new BusinessException(ErrorEnum.USER_NOT_FOUND)
-        }
-
-        return user
-    }
-
     async update(updateUserDto: UpdateUserDto) {
-        const { id, ...data } = updateUserDto
+        try {
+            const { id, ...data } = updateUserDto
 
-        await this.getUserOrThrowNotExist(id)
-
-        await this.prismaService.user.update({
-            where: {
-                id,
-            },
-            data,
-        })
+            await this.prismaService.user.update({
+                where: {
+                    id,
+                },
+                data,
+            })
+        } catch (e) {
+            this.errHandler(e)
+        }
     }
 
     async remove(id: number) {
-        await this.getUserOrThrowNotExist(id)
+        try {
+            await this.prismaService.user.delete({
+                where: {
+                    id,
+                },
+            })
+        } catch (e) {
+            this.errHandler(e)
+        }
+        return ResponseModel.success({ message: '删除用户成功' })
+    }
 
-        await this.prismaService.user.delete({
-            where: {
-                id,
-            },
-        })
+    private errHandler(err: PrismaClientKnownRequestError | Error) {
+        if (err instanceof PrismaClientKnownRequestError) {
+            switch (err.code) {
+                case PrismaErrorCode.NOT_UNIQUE:
+                    throw new BusinessException(ErrorEnum.SYSTEM_USER_EXISTS)
+                case PrismaErrorCode.RECORD_NOT_FOUND:
+                    throw new BusinessException(ErrorEnum.USER_NOT_FOUND)
+                case PrismaErrorCode.FOREIGN_KEY_ERROR:
+                    throw new BusinessException(ErrorEnum.ROLE_NOT_EXIST)
+                default:
+                    this.loggerService.error(
+                        `你有意外未处理的PrismaClientKnownRequestError，code为 ${err.code}`,
+                        err.stack,
+                        UserService.name,
+                    )
+            }
+        }
+        throw err
     }
 
     async updatePassword(updatePasswordDto: UpdatePasswordDto, userInfo: TokenPayload) {
         const { id } = userInfo
-        const user = await this.getUserOrThrowNotExist(id)
+
+        const user = await this.prismaService.user.findUnique({
+            where: {
+                id,
+            },
+        })
+        if (!user) {
+            throw new BusinessException(ErrorEnum.USER_NOT_FOUND)
+        }
 
         const { oldPassword, newPassword } = updatePasswordDto
-
         const pass = await comparePassword(oldPassword, user.password)
 
         if (!pass) {
@@ -130,5 +155,7 @@ export class UserService {
                 password: await passwordEncryption(newPassword),
             },
         })
+
+        return ResponseModel.success({ message: '密码修改成功' })
     }
 }

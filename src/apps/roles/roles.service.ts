@@ -7,10 +7,16 @@ import { BusinessException } from '../../common/exceptions/business.exception'
 import { ErrorEnum } from '../../constant/response-code.constant'
 import { ResponseModel } from '../../common/models/response.model'
 import { RoleListDto } from './dto/role-list.dto'
+import { PrismaErrorCode } from '../../constant/prisma-error-code.constant'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+import { LoggerService } from '../../shared/logger/logger.service'
 
 @Injectable()
 export class RolesService {
-    constructor(private prismaService: PrismaService) {}
+    constructor(
+        private readonly prismaService: PrismaService,
+        private readonly loggerService: LoggerService,
+    ) {}
 
     async create(createRoleDto: CreateRoleDto) {
         const { name, permissions } = createRoleDto
@@ -23,7 +29,7 @@ export class RolesService {
                 },
             })
         } catch (err) {
-            this.errHandler(err.message)
+            this.errHandler(err)
 
             throw new Error(err)
         }
@@ -31,7 +37,7 @@ export class RolesService {
         return ResponseModel.success({ message: '创建角色成功' })
     }
 
-    async findAll(roleListDto: RoleListDto) {
+    async getList(roleListDto: RoleListDto) {
         const { sortOrder, sortName, take, skip, searchText, searchType } = roleListDto
 
         const orderBy = {
@@ -52,6 +58,15 @@ export class RolesService {
             take,
             skip,
             orderBy,
+        })
+    }
+
+    findAll() {
+        return this.prismaService.role.findMany({
+            select: {
+                id: true,
+                name: true,
+            },
         })
     }
 
@@ -77,19 +92,28 @@ export class RolesService {
                 },
             })
         } catch (err) {
-            this.errHandler(err.message)
+            this.errHandler(err)
         }
 
         return ResponseModel.success({ message: '更新角色成功' })
     }
 
-    private errHandler(errMessage: string) {
-        if (errMessage.includes('Record to update not found')) {
-            throw new BusinessException(ErrorEnum.ROLE_NOT_EXIST)
-        } else if (errMessage.includes('Unique constraint failed on the fields: (`name`)')) {
-            throw new BusinessException(ErrorEnum.ROLE_EXIST)
+    private errHandler(err: PrismaClientKnownRequestError | Error) {
+        if (err instanceof PrismaClientKnownRequestError) {
+            switch (err.code) {
+                case PrismaErrorCode.NOT_UNIQUE:
+                    throw new BusinessException(ErrorEnum.ROLE_EXIST)
+                case PrismaErrorCode.RECORD_NOT_FOUND:
+                    throw new BusinessException(ErrorEnum.ROLE_NOT_EXIST)
+                default:
+                    this.loggerService.error(
+                        `你有意外未处理的PrismaClientKnownRequestError，code为 ${err.code}`,
+                        err.stack,
+                        RolesService.name,
+                    )
+            }
         }
-        throw new Error(errMessage)
+        throw err
     }
 
     async remove(id: number) {
@@ -98,7 +122,7 @@ export class RolesService {
                 where: { id },
             })
         } catch (err) {
-            this.errHandler(err.message)
+            this.errHandler(err)
         }
 
         return ResponseModel.success({ message: '删除角色成功' })

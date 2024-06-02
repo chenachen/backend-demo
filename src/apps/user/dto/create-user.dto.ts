@@ -1,8 +1,9 @@
 import { UserLevel } from '@prisma/client'
-import { IsEnum, Length } from 'class-validator'
+import { IsEnum, IsInt, IsOptional, Length } from 'class-validator'
 import { defaultLengthOptions } from 'src/common/validator/length'
 import { ApiProperty } from '@nestjs/swagger'
 import { defaultEnumOptions } from '../../../common/validator/enum'
+import { defaultIntOptions } from '../../../common/validator/int'
 
 export class CreateUserDto {
     @ApiProperty({ description: '帐号，需要唯一' })
@@ -17,7 +18,12 @@ export class CreateUserDto {
     @Length(8, 16, defaultLengthOptions)
     password: string
 
-    @ApiProperty({ description: '角色', enum: UserLevel })
+    @ApiProperty({ description: '用户等级', enum: UserLevel })
     @IsEnum(UserLevel, defaultEnumOptions)
     level: UserLevel
+
+    @IsOptional()
+    @ApiProperty({ description: '用户角色' })
+    @IsInt(defaultIntOptions)
+    roleId?: number
 }

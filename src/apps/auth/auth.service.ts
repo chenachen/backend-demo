@@ -17,8 +17,8 @@ import { PrismaService } from 'src/shared/prisma.service'
 import { RedisClientType } from 'redis'
 import { LoggerService } from 'src/shared/logger/logger.service'
 import { TokenPayload, TokenService } from 'src/shared/token.service'
-import { User } from '@prisma/client'
 import { UserCacheModel } from 'src/common/models/user-cache.model'
+import { UserPayload } from '../../types/prisma'
 
 @Injectable()
 export class AuthService {
@@ -88,6 +88,9 @@ export class AuthService {
             where: {
                 account,
             },
+            include: {
+                role: true,
+            },
         })
 
         if (!user || !(await comparePassword(password, user.password))) {
@@ -103,7 +106,7 @@ export class AuthService {
         const token = await this.tokenService.generateToken(payload)
 
         this.setUserCache({
-            user,
+            user: user as UserPayload,
             ip,
             ua,
             ...token,
@@ -112,7 +115,13 @@ export class AuthService {
         return token
     }
 
-    private setUserCache(param: { ip: string; ua: string; accessToken: string; user: User; refreshToken: string }) {
+    private setUserCache(param: {
+        ip: string
+        ua: string
+        accessToken: string
+        user: UserPayload
+        refreshToken: string
+    }) {
         const userCacheData = new UserCacheModel(param)
         const {
             user: { account },

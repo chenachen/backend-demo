@@ -8,7 +8,9 @@ import { IdDto } from '../../common/dto/id.dto'
 import { UpdatePasswordDto } from './dto/update-password.dto'
 import { AuthUser } from '../../common/decorators/auth-user.decorator'
 import { TokenPayload } from '../../shared/token.service'
+import { Public } from '../../common/decorators/public.decorator'
 
+@Public()
 @ApiTags('用户管理')
 @ApiBearerAuth()
 @Controller('user')
@@ -23,8 +25,8 @@ export class UserController {
 
     @ApiOperation({ summary: '获取用户列表' })
     @Get('list')
-    findAll(@Query() userListDto: UserListDto) {
-        return this.userService.findAll(userListDto)
+    getList(@Query() userListDto: UserListDto) {
+        return this.userService.getList(userListDto)
     }
 
     @ApiOperation({ summary: '获取单个用户信息' })
