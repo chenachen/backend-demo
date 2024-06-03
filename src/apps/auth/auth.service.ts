@@ -19,6 +19,7 @@ import { LoggerService } from 'src/shared/logger/logger.service'
 import { TokenPayload, TokenService } from 'src/shared/token.service'
 import { UserCacheModel } from 'src/common/models/user-cache.model'
 import { UserPayload } from '../../types/prisma'
+import { Permission, PermissionCode } from 'src/constant/permission.constant'
 
 @Injectable()
 export class AuthService {
@@ -97,11 +98,14 @@ export class AuthService {
             throw new BusinessException(ErrorEnum.INVALID_USERNAME_PASSWORD)
         }
 
+        const permissionCode = this.getPermissionCode(user)
+
         const payload = {
             account: user.account,
             level: user.level,
             id: user.id,
             nickname: user.nickname,
+            permissionCode
         }
         const token = await this.tokenService.generateToken(payload)
 
@@ -115,17 +119,41 @@ export class AuthService {
         return token
     }
 
-    private setUserCache(param: {
+    private getPermissionCode(user: UserPayload) {
+        if (!user.role) {
+            return []
+        }
+
+        const permissionList: PermissionCode[] = []
+
+        function traverse(list: unknown[]) {
+            list.forEach((item) => {
+                const { selected, code, children } = item as Permission
+
+                if (selected) {
+                    permissionList.push(code)
+                }
+                if (children) {
+                    traverse(children)
+                }
+            })
+        }
+        traverse(user.role.permissions)
+
+        return permissionList
+    }
+
+    private setUserCache(params: {
         ip: string
         ua: string
         accessToken: string
         user: UserPayload
         refreshToken: string
     }) {
-        const userCacheData = new UserCacheModel(param)
+        const userCacheData = new UserCacheModel(params)
         const {
             user: { account },
-        } = param
+        } = params
 
         const cacheKey = getUserCacheKey(account)
 
