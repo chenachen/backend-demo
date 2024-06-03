@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { CreateRoleDto } from './dto/create-role.dto'
 import { UpdateRoleDto } from './dto/update-role.dto'
-import { PERMISSION_LIST } from '../../constant/permission.constant'
+import { PERMISSION_LIST, PermissionCode } from '../../constant/permission.constant'
 import { PrismaService } from '../../shared/prisma.service'
 import { BusinessException } from '../../common/exceptions/business.exception'
 import { ErrorEnum } from '../../constant/response-code.constant'
@@ -10,10 +10,15 @@ import { RoleListDto } from './dto/role-list.dto'
 import { PrismaErrorCode } from '../../constant/prisma-error-code.constant'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 import { LoggerService } from '../../shared/logger/logger.service'
+import { RedisProviderKey } from '../../shared/redis.provider'
+import { RedisClientType } from 'redis'
+import { getPermissionCodeKey } from '../../common/utils/getRedisKey'
+import { getPermissionCode } from '../../common/utils/permission'
 
 @Injectable()
 export class RolesService {
     constructor(
+        @Inject(RedisProviderKey) private redisService: RedisClientType,
         private readonly prismaService: PrismaService,
         private readonly loggerService: LoggerService,
     ) {}
@@ -130,5 +135,22 @@ export class RolesService {
 
     getDefaultInfo() {
         return PERMISSION_LIST
+    }
+
+    async getAllPermissionCode(id: number) {
+        const key = getPermissionCodeKey(id)
+        let permissionCode: PermissionCode[]
+
+        try {
+            permissionCode = JSON.parse(await this.redisService.get(key))
+        } catch (e) {}
+
+        if (!permissionCode) {
+            const role = await this.findOne(id)
+
+            permissionCode = getPermissionCode(role)
+        }
+
+        return permissionCode
     }
 }

@@ -44,6 +44,4 @@ export class UserCacheModel {
         this.accessToken = accessToken
         this.roleId = roleId
     }
-
-
 }
