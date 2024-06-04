@@ -8,6 +8,7 @@ import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './lifecycle/guard/jwt-auth.guard'
 import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { RolesModule } from './apps/roles/roles.module';
+import { RbacGuard } from './lifecycle/guard/rbac.guard'
 
 @Module({
     imports: [
@@ -31,10 +32,8 @@ import { RolesModule } from './apps/roles/roles.module';
     ],
     controllers: [],
     providers: [
-        {
-            provide: APP_GUARD,
-            useClass: JwtAuthGuard,
-        },
+        { provide: APP_GUARD, useClass: JwtAuthGuard },
+        { provide: APP_GUARD, useClass: RbacGuard },
         { provide: APP_GUARD, useClass: ThrottlerGuard },
     ],
 })
