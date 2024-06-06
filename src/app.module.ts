@@ -9,6 +9,7 @@ import { JwtAuthGuard } from './lifecycle/guard/jwt-auth.guard'
 import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { RolesModule } from './apps/roles/roles.module';
 import { RbacGuard } from './lifecycle/guard/rbac.guard'
+import { UploadModule } from './apps/upload/upload.module';
 
 @Module({
     imports: [
@@ -29,6 +30,7 @@ import { RbacGuard } from './lifecycle/guard/rbac.guard'
         SharedModule,
         AuthModule,
         RolesModule,
+        UploadModule,
     ],
     controllers: [],
     providers: [

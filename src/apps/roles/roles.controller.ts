@@ -5,9 +5,7 @@ import { UpdateRoleDto } from './dto/update-role.dto'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { IdDto } from '../../common/dto/id.dto'
 import { RoleListDto } from './dto/role-list.dto'
-import { Public } from '../../common/decorators/public.decorator'
 
-@Public()
 @ApiTags('角色管理')
 @ApiBearerAuth()
 @Controller('roles')
