@@ -10,6 +10,8 @@ export enum ErrorEnum {
 
     ROLE_EXIST = '3001:角色名称已存在',
     ROLE_NOT_EXIST = '3001:角色不存在',
+
+    UPLOAD_FILE_FAIL = '4001:文件上传失败'
 }
 
 export const SUCCESS_CODE = 0
