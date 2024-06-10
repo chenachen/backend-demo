@@ -7,9 +7,11 @@ import configs from './config'
 import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './lifecycle/guard/jwt-auth.guard'
 import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
-import { RolesModule } from './apps/roles/roles.module';
+import { RolesModule } from './apps/roles/roles.module'
 import { RbacGuard } from './lifecycle/guard/rbac.guard'
-import { UploadModule } from './apps/upload/upload.module';
+import { UploadModule } from './apps/upload/upload.module'
+import { TasksModule } from './schedule/tasks.module'
+import { ScheduleModule } from '@nestjs/schedule'
 
 @Module({
     imports: [
@@ -31,6 +33,8 @@ import { UploadModule } from './apps/upload/upload.module';
         AuthModule,
         RolesModule,
         UploadModule,
+        ScheduleModule.forRoot(),
+        TasksModule,
     ],
     controllers: [],
     providers: [

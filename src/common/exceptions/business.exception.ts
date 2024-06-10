@@ -2,7 +2,7 @@ import { HttpException, HttpStatus } from '@nestjs/common'
 import { ErrorEnum, SUCCESS_CODE } from 'src/constant/response-code.constant'
 
 export class BusinessException extends HttpException {
-    private errorCode: number
+    private readonly errorCode: number
 
     constructor(error: ErrorEnum | string) {
         // 如果是非 ErrorEnum

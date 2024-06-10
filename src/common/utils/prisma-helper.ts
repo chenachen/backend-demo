@@ -3,7 +3,7 @@ import { isObject } from 'lodash'
 export function excludeField<T, K extends keyof T>(list: undefined, keys: K[]): undefined
 export function excludeField<T, K extends keyof T>(list: T[], keys: K[]): Omit<T, K>[]
 export function excludeField<T, K extends keyof T>(list: T, keys: K[]): Omit<T, K>
-export function excludeField<T, K extends keyof T>(list: T | T[] | undefined, keys: K[]): any {
+export function excludeField<T, K extends keyof T>(list: T | T[] | undefined, keys: K[]) {
     if (!isObject(list)) {
         return list as undefined
     }

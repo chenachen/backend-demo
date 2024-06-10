@@ -1,7 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { ForbiddenException, Inject, Injectable } from '@nestjs/common'
 
 import * as svgCaptcha from 'svg-captcha'
-import { isEmpty } from 'lodash'
 
 import { RedisProviderKey } from 'src/shared/redis.provider'
 import { genCaptchaImgKey, getUserCacheKey } from 'src/common/utils/getRedisKey'
@@ -36,8 +35,8 @@ export class AuthService {
             size: 4,
             color: true,
             noise: 4,
-            width: isEmpty(width) ? 100 : width,
-            height: isEmpty(height) ? 50 : height,
+            width: width ?? 100,
+            height: height ?? 50,
             charPreset: '1234567890',
         })
         const result = {
@@ -138,5 +137,33 @@ export class AuthService {
         const redisKey = getUserCacheKey(account)
 
         await this.redisService.del(redisKey)
+    }
+
+    async refreshToken(token: string, currIp: string, currUa: string) {
+        try {
+            const payload = await this.tokenService.verifyRefreshToken(token)
+            delete payload.exp
+            const cacheKey = getUserCacheKey(payload.account)
+            const userCache = (await this.redisService.hGetAll(cacheKey)) as unknown as UserCacheModel
+            const { refreshToken, ip, ua } = userCache
+
+            if (refreshToken === token && currUa === ua && ip === currIp) {
+                const accessToken = await this.tokenService.generateAccessToken(payload)
+
+                this.redisService.hSet(cacheKey, {
+                    ...userCache,
+                    accessToken,
+                })
+
+                return {
+                    accessToken,
+                }
+            } else {
+                throw new Error('refresh token 校验失败')
+            }
+        } catch (err) {
+            this.loggerService.error(err.message, err.stack, AuthService.name)
+            throw new ForbiddenException('登录已过期')
+        }
     }
 }

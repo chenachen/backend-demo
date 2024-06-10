@@ -8,9 +8,7 @@ import { IdDto } from '../../common/dto/id.dto'
 import { UpdatePasswordDto } from './dto/update-password.dto'
 import { AuthUser } from '../../common/decorators/auth-user.decorator'
 import { TokenPayload } from '../../shared/token.service'
-import { Public } from '../../common/decorators/public.decorator'
 
-@Public()
 @ApiTags('用户管理')
 @ApiBearerAuth()
 @Controller('user')

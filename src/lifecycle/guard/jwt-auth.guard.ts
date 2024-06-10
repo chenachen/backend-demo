@@ -11,6 +11,9 @@ import { TokenService } from '../../shared/token.service'
 import { getUserCacheKey } from '../../common/utils/getRedisKey'
 import { UserCacheModel } from '../../common/models/user-cache.model'
 import { LoggerService } from '../../shared/logger/logger.service'
+import { TokenExpiredError } from '@nestjs/jwt'
+import { BusinessException } from '../../common/exceptions/business.exception'
+import { ErrorEnum } from '../../constant/response-code.constant'
 
 // https://docs.nestjs.com/recipes/passport#implement-protected-route-and-jwt-strategy-guards
 @Injectable()
@@ -72,7 +75,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
             }
 
             request['user'] = payload
-        } catch {
+        } catch (err) {
+            if (err instanceof TokenExpiredError) {
+                throw new BusinessException(ErrorEnum.ACCESS_TOKEN_EXPIRED)
+            }
             throw new UnauthorizedException('用户未登录')
         }
 

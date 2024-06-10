@@ -10,6 +10,7 @@ export interface TokenPayload {
     id: number
     nickname: string
     roleId: number
+    exp?: number
 }
 
 @Injectable()
@@ -24,6 +25,10 @@ export class TokenService {
 
         this.refreshTokenOptions = refreshTokenOptions
         this.accessTokenOptions = accessTokenOptions
+    }
+
+    async generateAccessToken(payload: TokenPayload) {
+        return await this.jwtService.signAsync(payload, this.accessTokenOptions)
     }
 
     async generateToken(payload: TokenPayload) {
