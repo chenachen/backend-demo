@@ -39,7 +39,7 @@ export class UserService {
         return ResponseModel.success({ message: '用户创建成功' })
     }
 
-    async getList(userListDto: UserListDto): Promise<Omit<User, 'password'>[]> {
+    async getList(userListDto: UserListDto) {
         const { sortOrder, sortName, take, skip, searchText, searchType } = userListDto
 
         const orderBy = {
@@ -68,8 +68,14 @@ export class UserService {
                 },
             },
         })
+        const total = await this.prismaService.user.count({
+            where,
+        })
 
-        return excludeField(users, ['password'])
+        return {
+            list: excludeField(users, ['password']),
+            total,
+        }
     }
 
     async findOne(id: number): Promise<Omit<User, 'password'> | null> {

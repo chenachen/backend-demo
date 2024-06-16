@@ -11,6 +11,7 @@ export interface TokenPayload {
     nickname: string
     roleId: number
     exp?: number
+    iat?: number
 }
 
 @Injectable()

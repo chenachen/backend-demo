@@ -143,6 +143,7 @@ export class AuthService {
         try {
             const payload = await this.tokenService.verifyRefreshToken(token)
             delete payload.exp
+            delete payload.iat
             const cacheKey = getUserCacheKey(payload.account)
             const userCache = (await this.redisService.hGetAll(cacheKey)) as unknown as UserCacheModel
             const { refreshToken, ip, ua } = userCache

@@ -71,11 +71,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
                 `,
                     JwtAuthGuard.name,
                 )
-                throw new Error()
+                throw new Error('用户时间数据和缓存数据对应不上')
             }
 
             request['user'] = payload
         } catch (err) {
+            console.log(err.message)
             if (err instanceof TokenExpiredError) {
                 throw new BusinessException(ErrorEnum.ACCESS_TOKEN_EXPIRED)
             }

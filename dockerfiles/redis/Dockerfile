@@ -1,5 +1,5 @@
 # 使用官方的 Redis 镜像作为基础镜像
-FROM redis:7.2.0-alpine
+FROM redis:7.2.5
 
 WORKDIR /data
 
