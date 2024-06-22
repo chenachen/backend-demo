@@ -4,7 +4,7 @@ import { ResponseModel } from 'src/common/models/response.model'
 import { ErrorEnum } from 'src/constant/response-code.constant'
 import { LoggerService } from 'src/shared/logger/logger.service'
 
-interface myError {
+interface MyError {
     readonly status: number
     readonly statusCode?: number
     readonly message?: string
@@ -23,15 +23,14 @@ export class GlobalExceptionsFilter implements ExceptionFilter {
         const response = ctx.getResponse()
 
         const url = request.url!
-
         const status =
             exception instanceof HttpException
                 ? exception.getStatus()
-                : (exception as myError)?.status ||
-                  (exception as myError)?.statusCode ||
+                : (exception as MyError)?.status ||
+                  (exception as MyError)?.statusCode ||
                   HttpStatus.INTERNAL_SERVER_ERROR
 
-        let message = (exception as any)?.response?.message || (exception as myError)?.message || `${exception}`
+        let message = (exception as any)?.response?.message || (exception as MyError)?.message || `${exception}`
 
         // 系统内部错误时
         if (status === HttpStatus.INTERNAL_SERVER_ERROR && !(exception instanceof BusinessException)) {

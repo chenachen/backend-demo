@@ -101,6 +101,7 @@ export class UserService {
         } catch (e) {
             this.errHandler(e)
         }
+        return ResponseModel.success({ message: '更新用户成功' })
     }
 
     async remove(id: number) {
